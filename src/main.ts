@@ -2,9 +2,11 @@ import { resolve } from 'node:path';
 import serveStatic from '@fastify/static';
 import { migrate, openDb } from './db.ts';
 import { createApp } from './http.ts';
+import { registerProducts } from './products.ts';
 
 const pool = openDb(process.env.DATABASE_URL ?? 'postgres://commerce:commerce_local@localhost:5432/commerce');
 const app = createApp(pool, true);
+registerProducts(app, pool);
 app.addHook('onClose', () => pool.end());
 await migrate(pool);
 await app.register(serveStatic, { root: resolve('dist') });
