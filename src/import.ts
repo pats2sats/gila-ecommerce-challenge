@@ -12,7 +12,7 @@ type Candidate = { row: number; data: ProductInput };
 export function prepareImport(csv: string) {
   let records: Array<{ record: string[]; info: { lines: number } }>;
   try {
-    records = parse(csv, { bom: true, info: true, skip_empty_lines: true, relax_column_count: true });
+    records = parse(csv, { bom: true, info: true, skip_empty_lines: true, relax_column_count: true }) as unknown as typeof records;
   } catch {
     throw new HttpError(400, 'Malformed CSV');
   }
@@ -29,7 +29,7 @@ export function prepareImport(csv: string) {
     const fields = Object.fromEntries(required.map(h => [h, (record[headers.indexOf(h)] ?? '').trim()]));
     const stock = /^\d+(\.0+)?$/.test(fields.stock) ? Number(fields.stock) : NaN;
     const parsed = productInput.safeParse({
-      ...fields, stock, price: fields.price.replace(/^\$\s*/, '')
+      ...fields, stock, price: fields.price.toLowerCase() === 'free' ? '0' : fields.price.replace(/^\$\s*/, '')
     });
     if (!parsed.success || record.length !== headers.length) {
       issues.push({
